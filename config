@@ -1,0 +1,14 @@
+admin_theme="adminimal"
+admin_theme_project="adminimal_theme"
+solr_core=
+project=
+base_folder="$HOME/Sites"
+dumpfolder=${base_folder}"/dumps"
+configfolder=$HOME/dumpsql.d
+defaultconfig=0
+STATUS=0
+
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+BLUE='\033[0;34m'
+NC='\033[0m'
