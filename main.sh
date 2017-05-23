@@ -1,26 +1,29 @@
 #! /bin/sh
-SCRIPT="$0"
-while test -L "$SCRIPT"; do
-  SCRIPT="$(readlink "$SCRIPT")"
+SCRIPT_DIR="$0"
+while test -L "$SCRIPT_DIR"; do
+  SCRIPT_DIR="$(readlink "$SCRIPT_DIR")"
 done
 
+# Set variables.
+SCRIPT=$(basename "$0")
+SCRIPT_DIR="$(dirname "$SCRIPT_DIR")"
+ACTION="$1"
+PROJECT="$2"
+ENVIRONMENT="$3"
+defaultconfig=0
+STATUS=0
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+BLUE='\033[0;34m'
+NC='\033[0m'
+
+# Functions.
 error() {
   local message="$1";
   echo ${RED}'Error: '${NC}${message};
   echo
   return 1;
 }
-
-pushd $(dirname "$SCRIPT") > /dev/null
-  for module in config {add-project,remove-project,dump,import,backup}.sh; do
-    test -f ${PWD}/${module} && source ${PWD}/${module} || error "Unable to load $module"
-  done
-popd > /dev/null
-
-SCRIPT=$(basename "$0")
-ACTION="$1"
-PROJECT="$2"
-ENVIRONMENT="$3"
 
 pipe_view() {
   hash pv &>/dev/null && cat /dev/stdin | pv "$@" || cat /dev/stdin
@@ -51,6 +54,13 @@ list_environments() {
 	local available_environments=$(ls $projectfolder)
 	[[ "$available_environments" ]] && echo "Available Environments:\n$available_environments"
 }
+
+# Load "modules".
+pushd "$SCRIPT_DIR" > /dev/null
+  for module in config {add-project,remove-project,dump,import,backup}.sh; do
+    test -f ${PWD}/${module} && source ${PWD}/${module} || error "Unable to load $module"
+  done
+popd > /dev/null
 
 # Validate configfolder
 test -d $configfolder || mkdir -p $configfolder
