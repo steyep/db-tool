@@ -7,9 +7,10 @@ Utility for managing SQL databases.
 
 ### Usage:
 ```
-Usage: $SCRIPT <action> <argument> [options]
+Usage: db <action> <argument> [options]
 
   The following actions are supported:
+    list | ls                          : List configured projects/environments.
     add [project] [env]                : Configure a new project.
     remove <project> [env]             : Remove all of a project's configurations.
                                        : If an environment is specified, only the specified

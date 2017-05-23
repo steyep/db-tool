@@ -57,7 +57,7 @@ list_environments() {
 
 # Load "modules".
 pushd "$SCRIPT_DIR" > /dev/null
-  for module in config {add-project,remove-project,dump,import,backup}.sh; do
+  for module in config {add-project,remove-project,dump,import,backup,list}.sh; do
     test -f ${PWD}/${module} && source ${PWD}/${module} || error "Unable to load $module"
   done
 popd > /dev/null
@@ -102,6 +102,7 @@ show_menu() {
   Usage: $SCRIPT <action> <argument> [options]
 
   The following actions are supported:
+    list | ls                          : List configured projects/environments.
     add [project] [env]                : Configure a new project.
     remove <project> [env]             : Remove all of a project's configurations.
                                        : If an environment is specified, only the specified
@@ -116,6 +117,7 @@ show_menu() {
 }
 
 case "$ACTION" in
+  list|ls) list_configs ;;
 	add) add_project ;;
 	remove|rm) remove ;;
 	import) get_import ;;
