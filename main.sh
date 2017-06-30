@@ -40,7 +40,7 @@ load_client_config() {
 	local client="$1"
 	local environment="$2"
 	# See if a project configuration already exists for this project
-	local client_file=(`find $configfolder/$client -not -path '*/\.*' -type f -name "*${environment}" 2>/dev/null`)
+	local client_file=(`find $configfolder/$client -not -path '*/\.*' -type f -not -name "*.*" -name "*${environment}" 2>/dev/null`)
 	# Load it's settings as defaults if so:
 	[[ "$client_file" && -f $client_file ]] && echo "$client_file"
 }

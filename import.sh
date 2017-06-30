@@ -105,6 +105,9 @@ get_import() {
     echo "Clearing Drupal caches"
     drush cc all
 
+    # Check for additional_commands.sh.
+    test -f $configfolder/$PROJECT/additional_commands.sh && sh $configfolder/$PROJECT/additional_commands.sh
+
     cd $orig_dir
     success "$database imported"
   else

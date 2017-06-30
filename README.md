@@ -21,3 +21,5 @@ Usage: db <action> <argument> [options]
     refresh <project> <env>            : Gets a fresh databse dump and imports it locally.
     backup <project>                   : Make a local backup of a project's database.
 ```
+
+You can define a list of additional commands to run after a database import by adding them to an `additional_commands.sh` file and placing it in the `$HOME/db-tool.d/<project>` directory.
