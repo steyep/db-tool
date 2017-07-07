@@ -4,4 +4,4 @@ solr_core=
 project=
 base_folder="$HOME/Sites"
 dumpfolder=${base_folder}"/dumps"
-configfolder=$HOME/db-tool.d
+configfolder=$HOME/db_tool.d
