@@ -19,6 +19,11 @@ get_import() {
     # Create database if it doesn't already exist
     mysql -u root -proot -e"create database if not exists $database;"
 
+    # Create a settings.php file if this is a new site.
+    if [ ! -f $site_root/sites/default/settings.php ]; then
+      test -f $SCRIPT_DIR/settings.php && cp $SCRIPT_DIR/settings.php $site_root/sites/default/
+    fi
+
     echo "Dropping all database tables..."
     drush sql-drop -y
 
@@ -82,6 +87,16 @@ get_import() {
       drush vset admin_theme $admin_theme 2>/dev/null
       echo
     fi
+
+    # Enable devel
+    echo "Enabling devel..."
+    drush en devel -y 2>/dev/null
+    echo
+
+    # Enable devel
+    echo "Enabling reroute_email..."
+    drush en reroute_email -y 2>/dev/null
+    echo
 
     # Remove module_missing_message_fixer
     if [[ ! "$message_fixer" ]]; then
