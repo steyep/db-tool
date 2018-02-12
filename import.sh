@@ -93,9 +93,16 @@ get_import() {
     drush en devel -y 2>/dev/null
     echo
 
-    # Enable devel
+    # Enable Reroute Email
     echo "Enabling reroute_email..."
     drush en reroute_email -y 2>/dev/null
+    drush vset reroute_email_address ''
+    drush vset reroute_email_enable 1
+    echo
+
+    # Disable Autologout.
+    echo "Disabling autologout..."
+    drush dis autologout -y 2>/dev/null
     echo
 
     # Remove module_missing_message_fixer
