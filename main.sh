@@ -57,7 +57,7 @@ list_environments() {
 
 # Load "modules".
 pushd "$SCRIPT_DIR" > /dev/null
-  for module in config {add-project,remove-project,dump,import,backup,list}.sh; do
+  for module in config {add-project,remove-project,dump,import,backup,list,get-hooks}.sh; do
     test -f ${PWD}/${module} && source ${PWD}/${module} || error "Unable to load $module"
   done
 popd > /dev/null

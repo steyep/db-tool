@@ -7,6 +7,9 @@ get_import() {
     exit 1;
   }
 
+  # Run pre_import hooks.
+  source_hooks 'pre_import'
+
   recent_dump=(`find $dumpfolder -type f -name "${project}-${ENVIRONMENT}*.gz" -exec ls -t {} +`)
   [[ ! "$recent_dump" || ! -f "$recent_dump" ]] && {
     error "Unable to locate a recent ${ENVIRONMENT} database dump for $project";
@@ -127,8 +130,8 @@ get_import() {
     echo "Clearing Drupal caches"
     drush cc all
 
-    # Check for additional_commands.sh.
-    test -f $configfolder/$PROJECT/additional_commands.sh && sh $configfolder/$PROJECT/additional_commands.sh
+    # Run post_import hooks.
+    source_hooks 'post_import'
 
     cd $orig_dir
     success "$database imported"
