@@ -49,7 +49,7 @@ get_import() {
 
       # Remove references to missing modules
       fix_references=0
-      for module in $(drush mmmfl --no-field-labels --fields=name 2>/dev/null); do
+      for module in $(drush eval 'print implode(" ", array_keys(_module_missing_message_fixer_get_table_rows()))' 2>/dev/null); do
         fix_references=1
         echo "Removing references to ${module}..."
         drush mmmff $module &> /dev/null
@@ -98,6 +98,7 @@ get_import() {
 
     # Enable devel
     echo "Enabling devel..."
+    drush dl devel --dev -y 2>/dev/null
     drush en devel -y 2>/dev/null
     echo
 
