@@ -7,6 +7,11 @@ get_import() {
     exit 1;
   }
 
+  if [ -z $dbuser ]; then
+    read -p "Enter MySQL database username: " dbuser
+    read -p "Enter MySQL database password: " dbpass
+  fi
+
   # Run pre_import hooks.
   source_hooks 'pre_import'
 
@@ -20,7 +25,7 @@ get_import() {
     cd $site_root
 
     # Create database if it doesn't already exist
-    mysql -u root -proot -e"create database if not exists $database;"
+    $mysql_wrapper -e"create database if not exists $database;"
 
     # Create a settings.php file if this is a new site.
     if [ ! -f $site_root/sites/default/settings.php ]; then
@@ -30,7 +35,7 @@ get_import() {
     echo "Dropping all database tables..."
     drush sql-drop -y
 
-    gzip -dc $recent_dump | pipe_view --progress --size $(gzip -l $recent_dump | sed -n 2p | awk '{print $2}') --name "Importing $(basename $recent_dump)... " | mysql -u root -proot $database
+    gzip -dc $recent_dump | pipe_view --progress --size $(gzip -l $recent_dump | sed -n 2p | awk '{print $2}') --name "Importing $(basename $recent_dump)... " | $mysql_wrapper $database
 
     drupal_version=$(drush st drupal-version 2>/dev/null | awk '{ split($4,a,"."); printf a[1] }')
 

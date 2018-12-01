@@ -5,3 +5,5 @@ project=
 base_folder="$HOME/Sites"
 dumpfolder=${base_folder}"/dumps"
 configfolder=$HOME/db_tool.d
+dbuser=root
+dbpass=root

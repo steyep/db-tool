@@ -62,6 +62,9 @@ pushd "$SCRIPT_DIR" > /dev/null
   done
 popd > /dev/null
 
+mysql_wrapper="mysql -u ${dbuser}"
+[[ "$dbpass" ]] && mysql_wrapper+=" -p${dbpass}"
+
 # Validate configfolder
 test -d $configfolder || mkdir -p $configfolder
 test -f $configfolder/default && defaultconfig=1
