@@ -44,6 +44,7 @@ get_import() {
 
       # Enable module_missing_message_fixer
       echo "Enabling module_missing_message_fixer..."
+      drush dl module_missing_message_fixer -y &>/dev/null
       drush en module_missing_message_fixer -y &>/dev/null
       echo
 
