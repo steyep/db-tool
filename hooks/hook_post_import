@@ -1,0 +1,89 @@
+#! /bin/sh
+
+project_modules="$(drush pml --type=module --no-core 2>/dev/null)"
+enable_module() {
+  local module="$1"
+  local return_code=0
+  shift
+  if ! echo "$project_modules" | grep -Eq "\($module\)"; then
+    enable_module_output="$(drush dl "$module" $@ -y 2>&1)"
+    return_code=$?
+    # An error occurred while downloading the module.
+    if [ $return_code -ne 0 ]; then
+      error "Unable to download $module"
+      echo "$enable_module_output" 1>&2
+      return $return_code;
+    fi
+  fi
+
+  echo "Enabling ${module}..."
+  enable_module_output="$(drush en "$module" -y 2>&1)"
+  return_code=$?
+  if [ $return_code -ne 0 ]; then
+    error "Unable to enable ${module}"
+    echo "$enable_module_output" 1>&2
+  fi
+  return $return_code;
+}
+
+drupal_version=$(drush st drupal-version --format=list 2>/dev/null | cut -c 1)
+if (( $drupal_version > 6 )); then
+  # Path to the existing "Module missing" message fixer module (if it exists).
+  message_fixer_path="$(drush drupal-directory module_missing_message_fixer 2>/dev/null)"
+  # Enable module_missing_message_fixer
+  if [[ "$message_fixer_path" ]] || enable_module module_missing_message_fixer; then
+    # Remove references to missing modules
+    while read module report; do
+      [[ "$module" == "Name" ]] && continue
+      echo "Removing references to ${module}..."
+      drush mmmff $module &> /dev/null
+    done <<<"$(drush mmmfl)"
+    [[ "$fix_references" == "1" ]] && echo
+
+    # Remove module_missing_message_fixer
+    if [[ ! "$message_fixer_path" ]]; then
+      message_fixer_path="$(drush drupal-directory module_missing_message_fixer 2>/dev/null)"
+      echo "Disabling module_missing_message_fixer..."
+      drush dis module_missing_message_fixer -y 2>/dev/null
+      echo "Uninstalling module_missing_message_fixer..."
+      drush pmu module_missing_message_fixer -y 2>/dev/null
+
+      if [[ "$message_fixer_path" ]] && [ -d "$message_fixer_path" ]; then
+        echo "Removing module_missing_message_fixer from project..."
+        rm -rf "$message_fixer_path"
+        echo
+      fi
+    fi
+  fi
+
+  # Set the admin theme to "Adminimal".
+  if drush dl adminimal_theme -y &>/dev/null; then
+    echo "Setting admin theme..."
+    drush en adminimal -y &>/dev/null && drush vset admin_theme adminimal 2>/dev/null
+    echo
+  fi
+fi
+
+# Enable devel
+enable_module devel --dev
+
+# Enable Reroute Email
+if enable_module reroute_email; then
+  drush vset reroute_email_address ''
+  drush vset reroute_email_whitelist ''
+  drush vset reroute_email_enable 1
+fi
+
+# Disable Autologout.
+echo "Disabling autologout..."
+drush dis autologout -y 2>/dev/null
+echo
+
+if ! php -i 2>/dev/null | grep -q 'LDAP Support => enabled'; then
+  # Disable LDAP stuff.
+  drush dis ldap_authentication -y
+  drush dis ldap_authorization -y
+  drush dis ldap_authorization_drupal_role -y
+  drush dis ldap_profile -y
+  drush dis ldap_servers -y
+fi

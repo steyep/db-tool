@@ -37,33 +37,8 @@ get_import() {
 
     gzip -dc $recent_dump | pipe_view --progress --size $(gzip -l $recent_dump | sed -n 2p | awk '{print $2}') --name "Importing $(basename $recent_dump)... " | $mysql_wrapper $database
 
-    drupal_version=$(drush st drupal-version 2>/dev/null | awk '{ split($4,a,"."); printf a[1] }')
-
-    if (( $drupal_version > 6 )); then
-      message_fixer="$(drush pml --type=Module --no-core --pipe 2>/dev/null | grep module_missing_message_fixer)"
-
-      # Enable module_missing_message_fixer
-      echo "Enabling module_missing_message_fixer..."
-      drush dl module_missing_message_fixer -y &>/dev/null
-      drush en module_missing_message_fixer -y &>/dev/null
-      echo
-
-      # Remove references to missing modules
-      fix_references=0
-      for module in $(drush eval 'print implode(" ", array_keys(_module_missing_message_fixer_get_table_rows()))' 2>/dev/null); do
-        fix_references=1
-        echo "Removing references to ${module}..."
-        drush mmmff $module &> /dev/null
-      done
-      [[ "$fix_references" == "1" ]] && echo
-
-      # Disable simplesaml
-      for module in $(drush pml --type=Module --status=Enabled --no-core --pipe 2>/dev/null | grep simplesaml); do
-        echo "Disabling SimpleSAML..."
-        drush dis $module -y 2>/dev/null
-        echo
-      done
-    fi
+    # Run post_import hooks.
+    source_hooks 'post_import'
 
     # If memcached is running, flush it.
     if [[ "$(pgrep memcached)" ]]; then
@@ -88,57 +63,9 @@ get_import() {
       echo
     fi
 
-    # If Drupal version is 7 or 8, install the admin theme
-    if (( $drupal_version > 6 )); then
-      echo "Setting admin theme..."
-      drush drupal-directory $admin_theme &> /dev/null || drush dl $admin_theme_project 2>/dev/null
-      drush en $admin_theme -y 2>/dev/null
-      drush vset admin_theme $admin_theme 2>/dev/null
-      echo
-    fi
-
-    # Enable devel
-    echo "Enabling devel..."
-    drush dl devel --dev -y 2>/dev/null
-    drush en devel -y 2>/dev/null
-    echo
-
-    # Enable Reroute Email
-    echo "Enabling reroute_email..."
-    drush en reroute_email -y 2>/dev/null
-    drush vset reroute_email_address ''
-    drush vset reroute_email_enable 1
-    echo
-
-    # Disable Autologout.
-    echo "Disabling autologout..."
-    drush dis autologout -y 2>/dev/null
-    echo
-
-    # Remove module_missing_message_fixer
-    if [[ ! "$message_fixer" ]]; then
-      module_path="$(drush pmi module_missing_message_fixer 2>/dev/null | grep Path | awk '{print $3}')"
-      if [[ "$module_path" ]]; then
-        echo "Disabling module_missing_message_fixer..."
-        drush dis module_missing_message_fixer -y 2>/dev/null
-        echo "Uninstalling module_missing_message_fixer..."
-        drush pmu module_missing_message_fixer -y 2>/dev/null
-        if [ -d "$module_path" ]; then
-          echo "Removing module_missing_message_fixer from project..."
-          rm -rf "$module_path"
-        else
-          error "Unable to remove $module_path"
-        fi
-        echo
-      fi
-    fi
-
     # Clear Drupal caches.
     echo "Clearing Drupal caches"
     drush cc all
-
-    # Run post_import hooks.
-    source_hooks 'post_import'
 
     cd $orig_dir
     success "$database imported"

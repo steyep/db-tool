@@ -4,7 +4,7 @@ function source_hooks() {
 
   # Establish hook directory.
   local hook_dir=$configfolder/hooks
-  test -d "${hook_dir}" || mkdir -p "${hook_dir}"
+  test -d "${hook_dir}" || { test -d "${SCRIPT_DIR}/hooks" && cp -r "${SCRIPT_DIR}/hooks" "$configfolder" || mkdir -p "${hook_dir}"; }
 
   # Source global hooks
   local global_hook="${hook_dir}/hook_${hook}"

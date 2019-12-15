@@ -113,9 +113,9 @@ show_menu() {
     import <project> [env]             : Imports the most recent database dump locally.
     dump <project> <env>               : Gets a database dump from the configured project's
                                        : specified environment.
-    refresh <project> <env>            : Gets a fresh databse dump and imports it locally.
+    refresh <project> <env>            : Gets a fresh database dump and imports it locally.
     backup <project>                   : Make a local backup of a project's database.
-
+    config                             : Open the $SCRIPT configuration file.
 	END_MENU
 }
 
@@ -127,5 +127,6 @@ case "$ACTION" in
 	dump) get_dump ;;
 	refresh) get_dump && get_import ;;
 	backup) make_backup ;;
+	config) $EDITOR $SCRIPT_DIR/config ;;
 	*) show_menu && exit ;;
 esac
